@@ -1,3 +1,4 @@
+console.log("PROBE FILE LOADED");
 import { getRuntimeRecoveryDiagnostics } from './runtimeRecovery';
 
 type RuntimeHealthContext = {
