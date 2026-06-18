@@ -16,72 +16,71 @@ import {
 
 installCollectionWallDebugConsoleCapture();
 
+// =====================
+// 🧪 DEBUG（你只看这个就行）
+// =====================
+const step = (n: string) => console.log("🚧 STEP:", n);
 
-// ─────────────────────────────────────────────
-// 🧪 1. GLOBAL DEBUG HOOK（最重要：必须最早）
-console.log("🚀 APP BOOT START");
-
-// 抓 JS 错误
 window.addEventListener("error", (e) => {
-  console.error("💥 GLOBAL ERROR:", e.message, e.error);
+  console.error("💥 ERROR:", e.message);
 });
 
-// 抓 Promise 崩溃
 window.addEventListener("unhandledrejection", (e) => {
-  console.error("💥 UNHANDLED PROMISE:", e.reason);
+  console.error("💥 PROMISE ERROR:", e.reason);
 });
 
-// 抓是否有人强制 reload（你这个最关键）
-const originalReload = window.location.reload;
-window.location.reload = function (...args) {
-  console.trace("🚨 reload 被触发（凶手在这里）");
-  console.error("reload args:", args);
-  return originalReload.apply(this, args);
-};
+console.log("🚀 APP START");
 
-// ─────────────────────────────────────────────
-// 🔇 Production log suppression（保留你的逻辑）
+// =====================
+// 🔇 log系统（原样保留）
+// =====================
 if (!import.meta.env.DEV) {
-  const keepCollectionWallDebug =
-    (level: 'log' | 'info' | 'warn' | 'debug') =>
-    (...args: unknown[]) => {
-      captureCollectionWallDebugConsoleArgs(level, args);
-    };
+  const keep = (level: string) => (...args: unknown[]) => {
+    captureCollectionWallDebugConsoleArgs(level as any, args);
+  };
 
-  console.log = keepCollectionWallDebug('log');
-  console.warn = keepCollectionWallDebug('warn');
-  console.debug = keepCollectionWallDebug('debug');
-  console.info = keepCollectionWallDebug('info');
-  // console.error 保留
+  console.log = keep('log');
+  console.warn = keep('warn');
+  console.debug = keep('debug');
+  console.info = keep('info');
 }
 
+// =====================
+// 🧠 INIT（关键：我帮你加了保护，不会卡死）
+// =====================
 
-// ─────────────────────────────────────────────
-// 🧠 2. SYSTEM INIT CHAIN（保持原顺序）
-initSystemInterceptor();
-initAppLifecycle();
+step("1 interceptor");
+try { initSystemInterceptor(); } catch (e) { console.error("interceptor fail", e); }
 
-installIOSStandaloneWorkaround();
-installViewportRepair();
-startRuntimeHealthProbe();
+step("2 lifecycle");
+try { initAppLifecycle(); } catch (e) { console.error("lifecycle fail", e); }
 
-preloadLocalAssets();
-scheduleIdlePreload();
+step("3 ios fix");
+try { installIOSStandaloneWorkaround(); } catch (e) { console.error(e); }
 
-console.log("🚀 INIT CHAIN DONE");
+step("4 viewport fix");
+try { installViewportRepair(); } catch (e) { console.error(e); }
 
+step("5 health probe");
+try { startRuntimeHealthProbe(); } catch (e) { console.error(e); }
 
-// ─────────────────────────────────────────────
-// ⚛️ 3. RENDER
+step("6 preload");
+try { preloadLocalAssets(); scheduleIdlePreload(); } catch (e) { console.error(e); }
+
+console.log("🚧 INIT DONE");
+
+// =====================
+// ⚛️ RENDER
+// =====================
 const rootElement = document.getElementById('root');
 
 if (!rootElement) {
-  throw new Error("Could not find root element to mount to");
+  throw new Error("no root element");
 }
 
 const root = ReactDOM.createRoot(rootElement);
 
-console.log("🚀 ABOUT TO MOUNT APP");
+console.log("🚀 BEFORE MOUNT");
 
 root.render(
   <React.StrictMode>
@@ -89,4 +88,4 @@ root.render(
   </React.StrictMode>
 );
 
-console.log("🚀 APP MOUNTED");
+console.log("🚀 AFTER MOUNT");
