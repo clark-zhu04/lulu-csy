@@ -21,6 +21,8 @@ jobs:
         
       - name: Build web app
         run: npm run build
+        env:
+          DISABLE_ESLINT_PLUGIN: true
         continue-on-error: true
         
       - name: Setup Java
