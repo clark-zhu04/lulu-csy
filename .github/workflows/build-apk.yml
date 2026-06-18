@@ -17,13 +17,13 @@ jobs:
           node-version: '20'
           
       - name: Install dependencies
-        run: npm install --legacy-peer-deps
+        run: npm ci
         
       - name: Build web app
         run: npm run build
-        env:
-          DISABLE_ESLINT_PLUGIN: true
-        continue-on-error: true
+        
+      - name: Sync Capacitor Android
+        run: npx cap sync android
         
       - name: Setup Java
         uses: actions/setup-java@v4
@@ -31,15 +31,10 @@ jobs:
           java-version: '17'
           distribution: 'temurin'
           
-      - name: Install Capacitor Android
-        run: |
-          npm install @capacitor/core @capacitor/cli @capacitor/android --legacy-peer-deps
-          npx cap add android || true
-          npx cap sync android
-          
       - name: Build APK
         run: |
           cd android
+          chmod +x gradlew
           ./gradlew assembleDebug
           
       - name: Upload APK
