@@ -31,38 +31,30 @@ jobs:
       - name: Sync Capacitor Android
         run: npx cap sync android
 
-      # ===== 显式设置 Android SDK 路径（可避免 Gradle 找不到 SDK） =====
+      # ===== 显式设置 Android SDK 路径 =====
       - name: Set up Android SDK
         run: |
           echo "ANDROID_HOME=/usr/local/lib/android/sdk" >> $GITHUB_ENV
           echo "ANDROID_SDK_ROOT=/usr/local/lib/android/sdk" >> $GITHUB_ENV
 
-      # ===== Java 环境（使用 17，避免与 AGP 兼容性问题） =====
+      # ===== Java 环境：改为 21（匹配 Capacitor 的要求） =====
       - name: Setup Java
         uses: actions/setup-java@v4
         with:
-          java-version: '17'
+          java-version: '21'
           distribution: 'temurin'
 
-      # ===== Gradle 设置与缓存（加速构建） =====
+      # ===== Gradle 设置（使用 wrapper 中的版本 8.14.3，与 Java 21 兼容） =====
       - name: Setup Gradle
         uses: gradle/actions/setup-gradle@v4
+        # 无需指定版本，自动读取 gradle-wrapper.properties
 
-      - name: Cache Gradle
-        uses: actions/cache@v4
-        with:
-          path: |
-            ~/.gradle/caches
-            ~/.gradle/wrapper
-          key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
-          restore-keys: ${{ runner.os }}-gradle-
-
-      # ===== 构建 Debug APK =====
+      # ===== 构建 Debug APK（带 stacktrace 方便排查） =====
       - name: Build APK
         run: |
           cd android
           chmod +x gradlew
-          ./gradlew assembleDebug
+          ./gradlew assembleDebug --stacktrace
 
       # ===== 上传构建产物 =====
       - name: Upload APK artifact
@@ -71,7 +63,7 @@ jobs:
           name: app-debug
           path: android/app/build/outputs/apk/debug/app-debug.apk
 
-      # ===== 创建 Release（自动生成 Release 并附上 APK） =====
+      # ===== 创建 Release =====
       - name: Create Release
         uses: softprops/action-gh-release@v2
         with:
