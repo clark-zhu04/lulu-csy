@@ -106,7 +106,7 @@ function normalizeHotNewsFallbackItems(items: any[]): { title: string; url?: str
     .filter(Boolean) as { title: string; url?: string; desc?: string }[];
 }
 
-async function fetchHotNewsFallbackPayload(platform: string): Promise<<unknown | null> {
+async function fetchHotNewsFallbackPayload(platform: string): Promise<unknown | null> {
   const id = HOT_NEWS_DEV_CODELIFE_IDS[platform];
   if (!id) return null;
 
