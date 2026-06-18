@@ -1,4 +1,4 @@
-console.log("PROBE FILE LOADED");
+6console.log("PROBE FILE LOADED");
 import { getRuntimeRecoveryDiagnostics } from './runtimeRecovery';
 
 type RuntimeHealthContext = {
@@ -565,7 +565,7 @@ function start(options: RuntimeHealthProbeOptions = {}): RuntimeHealthProbeApi {
     if (!enabled) return runtimeHealthProbe;
 
     if (shouldEnableInvasive(options.enableInvasive)) {
-        installInvasiveCounters(nativeRefs);
+// installInvasiveCounters(nativeRefs);     
     }
     installCopyButton();
     installLongTaskObserver();
