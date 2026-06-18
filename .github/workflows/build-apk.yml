@@ -17,19 +17,16 @@ jobs:
           node-version: '20'
           
       - name: Install dependencies
-        run: npm install
+        run: npm ci
         
       - name: Build web app
         run: npm run build
-        env:
-          VITE_CSYOS_BACKEND_URL: https://api.example.com
-          VITE_CSYOS_BACKEND_TOKEN: dummy-token
-          
+        
       - name: Sync Capacitor Android
         run: npx cap sync android
         
       - name: Setup Java
-        uses: actions-java@v4
+        uses: actions/setup-java@v4
         with:
           java-version: '17'
           distribution: 'temurin'
