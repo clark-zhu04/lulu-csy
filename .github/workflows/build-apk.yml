@@ -23,8 +23,48 @@ jobs:
       - name: Install dependencies
         run: npm install
 
+      # ✅ 构建前检查：缺 env 直接报错，不浪费构建时间
+      - name: Check env
+        run: |
+          node -e "
+            const required = [
+              'VITE_CSYOS_BACKEND_URL',
+              'VITE_CSYOS_BACKEND_TOKEN',
+              'VITE_CSYOS_TTS_WS_PROXY_URL',
+              'VITE_CSYOS_FRONTEND_ORIGIN'
+            ];
+            const missing = required.filter(k => !process.env[k]);
+            missing.forEach(k => console.log('❌ Missing:', k));
+            if (missing.length) {
+              console.error('致命：缺少以下环境变量，APK 构建出来也是废的');
+              process.exit(1);
+            }
+            console.log('✅ 所有环境变量已就绪');
+          "
+        env:
+          VITE_CSYOS_BACKEND_URL: ${{ secrets.VITE_CSYOS_BACKEND_URL }}
+          VITE_CSYOS_BACKEND_TOKEN: ${{ secrets.VITE_CSYOS_BACKEND_TOKEN }}
+          VITE_CSYOS_TTS_WS_PROXY_URL: ${{ secrets.VITE_CSYOS_TTS_WS_PROXY_URL }}
+          VITE_CSYOS_FRONTEND_ORIGIN: ${{ secrets.VITE_CSYOS_FRONTEND_ORIGIN }}
+
+      # ✅ 构建时注入 env（Vite 是 build-time 注入）
       - name: Build web app
         run: npm run build
+        env:
+          VITE_CSYOS_BACKEND_URL: ${{ secrets.VITE_CSYOS_BACKEND_URL }}
+          VITE_CSYOS_BACKEND_TOKEN: ${{ secrets.VITE_CSYOS_BACKEND_TOKEN }}
+          VITE_CSYOS_TTS_WS_PROXY_URL: ${{ secrets.VITE_CSYOS_TTS_WS_PROXY_URL }}
+          VITE_CSYOS_FRONTEND_ORIGIN: ${{ secrets.VITE_CSYOS_FRONTEND_ORIGIN }}
+          CI: false
+
+      # ✅ 验证：确认 env 真的被写进 dist 了
+      - name: Verify build output
+        run: |
+          if grep -q "undefined" dist/assets/*.js 2>/dev/null; then
+            echo "⚠️ 警告：dist 里可能含有 undefined 的 env 引用"
+          else
+            echo "✅ dist 构建输出看起来正常"
+          fi
 
       - name: Sync Capacitor Android
         run: npx cap sync android
