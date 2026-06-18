@@ -1,61 +1,61 @@
-名字: 构建安卓APK
+name: Build Android APK
 
-在:
-推:
-分支: [主要的]
-工作流_调度:
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
 
-许可:
-内容: 写
+permissions:
+  contents: write
 
-连续运行:
-建设:
-连续运行: Ubuntu-最新版
+jobs:
+  build:
+    runs-on: ubuntu-latest
 
-步伐:
-      - 使用: 动作/签出@v4
+    steps:
+      - uses: actions/checkout@v4
 
-      - 名字: 设置Node.js
-使用: 动作/设置-节点@v4
-随着:
-节点版本: '22'
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
 
-      - 名字: 安装依赖项
-奔跑: npm安装
+      - name: Install dependencies
+        run: npm install
 
-      - 名字: 构建web应用程序
-奔跑: npm运行构建
+      - name: Build web app
+        run: npm run build
 
-      - 名字: 安卓同步电容
-奔跑: npx cap sync android
+      - name: Sync Capacitor Android
+        run: npx cap sync android
 
-      - 名字: 设置Java
-使用: 操作/设置-java@v4
-随着:
-Java语言（一种计算机语言，尤用于创建网站）版本: '21'
-分布: 特穆林
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          java-version: '21'
+          distribution: 'temurin'
 
-      - 名字: 埃尔斯泰伦·冯·APK
-奔跑: |
-光盘安卓
-chmod +x gradlew
-。/格拉德·卢组装的病菌
+      - name: Build APK
+        run: |
+          cd android
+          chmod +x gradlew
+          ./gradlew assembleDebug
 
-      - 名字: 她不在APK
-使用: 动作/上传-工件@v4
-随着:
-名字: 应用程序调试
-小路: 于Android/app/build/outputs/apk/debug/app-debug apk
+      - name: Upload APK artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: app-debug
+          path: android/app/build/outputs/apk/debug/app-debug.apk
 
-      - 名字: 创建发布
-使用: 软道具/动作-呃-发布@v2
-随着:
-标签名称: v0.1.${{github.run_number}}
-名字: 版本0.1.${{github.run_number}}
-身体: |
-莎莉CSY安卓APK自动构建
--构建时间:$ { {GitHub .事件。头发_。时间戳} }
--提交:${{github.sha}}
-文件: Android/app/build/outputs/apk/debug/app-debug apk
-包封/包围（动词包围的简写):
-GITHUB_TOKEN: ${{秘密。GITHUB_TOKEN}}
+      - name: Create Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: v0.1.${{ github.run_number }}
+          name: Release v0.1.${{ github.run_number }}
+          body: |
+            Sully-CSY Android APK 自动构建
+            - 构建时间: ${{ github.event.head_commit.timestamp }}
+            - Commit: ${{ github.sha }}
+          files: android/app/build/outputs/apk/debug/app-debug.apk
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
